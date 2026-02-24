@@ -1,0 +1,27 @@
+# =============================================================================
+# RESTORAN MİKROSERVİS PROJESİ - BAĞIMLILIKLAR
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Flask Framework
+# -----------------------------------------------------------------------------
+flask==3.0.0                    # Ana web framework
+flask-restx==1.3.0              # Swagger/OpenAPI desteği için
+
+# -----------------------------------------------------------------------------
+# HTTP İstemci
+# -----------------------------------------------------------------------------
+requests==2.31.0                # Servisler arası iletişim için
+
+# -----------------------------------------------------------------------------
+# REDIS - Dağıtık Mesaj Kuyruğu ve Cache
+# -----------------------------------------------------------------------------
+# Redis eklenmesinin faydaları:
+# 1. KALICILIK: Veriler bellekte değil Redis'te tutulur, sistem çökse bile kaybolmaz
+# 2. PUB/SUB: Aşçılar polling yerine gerçek zamanlı bildirim alır (daha az kaynak)
+# 3. DAĞITIK KUYRUK: Birden fazla garson/aşçı instance'ı aynı kuyruğu paylaşabilir
+# 4. ATOMİK İŞLEMLER: Redis'in atomik komutları thread-safety garantisi verir
+# 5. TTL/EXPIRE: Eski siparişler otomatik temizlenebilir
+# 6. PERFORMANS: In-memory veri yapısı olarak milisaniye seviyesinde yanıt
+# -----------------------------------------------------------------------------
+redis==5.0.1                    # Redis Python istemcisi

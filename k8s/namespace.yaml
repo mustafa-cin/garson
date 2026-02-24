@@ -1,0 +1,10 @@
+# namespace.yaml - Tüm restoran kaynaklarını izole eden namespace
+# NEDEN: Kubernetes'te namespace, projeni diğer projelerden ayırır.
+#        Tıpkı bir restoranın kendi binasında olması gibi.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: restoran
+  labels:
+    app: restoran
+    environment: development

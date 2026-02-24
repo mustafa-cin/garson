@@ -1,0 +1,32 @@
+# Dockerfile.asci - Aşçı servisi için container image
+
+FROM python:3.11-slim
+
+LABEL maintainer="can@devops.com"
+LABEL service="asci"
+LABEL role="worker"
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1
+ENV GARSON_URL=http://garson:5000
+ENV ASCI_ISIM="Aşçı"
+ENV UZMANLIK=""
+ENV POLLING_INTERVAL=5
+ENV HAZIRLAMA_HIZI=1.0
+
+# Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Application code
+COPY asci.py .
+COPY shared/ ./shared/
+
+# Non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
+
+CMD ["python", "asci.py"]

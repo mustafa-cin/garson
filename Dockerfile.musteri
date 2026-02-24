@@ -1,0 +1,30 @@
+# Dockerfile.musteri - Müşteri servisi için container image
+
+FROM python:3.11-slim
+
+LABEL maintainer="can@devops.com"
+LABEL service="musteri"
+LABEL role="producer"
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1
+ENV GARSON_URL=http://garson:5000
+ENV MUSTERI_ADI="Müşteri"
+ENV SENARYO=1
+
+# Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Application code
+COPY musteri.py .
+COPY shared/ ./shared/
+
+# Non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
+
+CMD ["python", "musteri.py"]

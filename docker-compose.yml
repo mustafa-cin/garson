@@ -1,0 +1,200 @@
+# docker-compose.yml - Restoran mikroservis orkestrasyon
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # GARSON SERVİSİ (Dispatcher)
+  # ==========================================================================
+  garson:
+    build:
+      context: .
+      dockerfile: Dockerfile.garson
+    
+    container_name: garson_servisi
+    image: restoran/garson:latest
+    
+    ports:
+      - "5000:5000"
+    
+    environment:
+      - FLASK_ENV=development
+      - LOG_LEVEL=INFO
+    
+    networks:
+      - restoran-network
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/v1/sistem/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    volumes:
+      - ./logs/garson:/app/logs
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  
+  # ==========================================================================
+  # MÜŞTERİ SERVİSİ (Producer)
+  # ==========================================================================
+  musteri:
+    build:
+      context: .
+      dockerfile: Dockerfile.musteri
+    
+    container_name: musteri_1
+    image: restoran/musteri:latest
+    
+    environment:
+      - GARSON_URL=http://garson:5000
+      - MUSTERI_ADI=Ahmet
+      - SENARYO=1
+    
+    networks:
+      - restoran-network
+    
+    depends_on:
+      garson:
+        condition: service_healthy
+    
+    restart: "no"
+    
+    volumes:
+      - ./logs/musteri:/app/logs
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+  
+  # ==========================================================================
+  # AŞÇI 1 - Mehmet Usta (Pizza, Pasta uzmanı)
+  # ==========================================================================
+  asci1:
+    build:
+      context: .
+      dockerfile: Dockerfile.asci
+    
+    container_name: asci_mehmet
+    image: restoran/asci:latest
+    
+    environment:
+      - GARSON_URL=http://garson:5000
+      - ASCI_ISIM=Mehmet Usta
+      - UZMANLIK=🍕 Pizza Margherita,🍝 Spagetti Carbonara
+      - POLLING_INTERVAL=5
+      - HAZIRLAMA_HIZI=0.8
+    
+    networks:
+      - restoran-network
+    
+    depends_on:
+      garson:
+        condition: service_healthy
+    
+    restart: unless-stopped
+    
+    volumes:
+      - ./logs/asci1:/app/logs
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+  
+  # ==========================================================================
+  # AŞÇI 2 - Ayşe Hanım (Burger, Salata uzmanı)
+  # ==========================================================================
+  asci2:
+    build:
+      context: .
+      dockerfile: Dockerfile.asci
+    
+    container_name: asci_ayse
+    image: restoran/asci:latest
+    
+    environment:
+      - GARSON_URL=http://garson:5000
+      - ASCI_ISIM=Ayşe Hanım
+      - UZMANLIK=🍔 Cheeseburger,🥗 Sezar Salata,🌮 Taco
+      - POLLING_INTERVAL=5
+      - HAZIRLAMA_HIZI=1.0
+    
+    networks:
+      - restoran-network
+    
+    depends_on:
+      garson:
+        condition: service_healthy
+    
+    restart: unless-stopped
+    
+    volumes:
+      - ./logs/asci2:/app/logs
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+  
+  # ==========================================================================
+  # AŞÇI 3 - Ali Usta (Genel - her şeyi yapar)
+  # ==========================================================================
+  asci3:
+    build:
+      context: .
+      dockerfile: Dockerfile.asci
+    
+    container_name: asci_ali
+    image: restoran/asci:latest
+    
+    environment:
+      - GARSON_URL=http://garson:5000
+      - ASCI_ISIM=Ali Usta
+      - UZMANLIK=
+      - POLLING_INTERVAL=5
+      - HAZIRLAMA_HIZI=1.2
+    
+    networks:
+      - restoran-network
+    
+    depends_on:
+      garson:
+        condition: service_healthy
+    
+    restart: unless-stopped
+    
+    volumes:
+      - ./logs/asci3:/app/logs
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+# ============================================================================
+# NETWORKS
+# ============================================================================
+networks:
+  restoran-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+    labels:
+      - "com.example.project=restoran"
+      - "com.example.environment=development"

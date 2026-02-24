@@ -1,0 +1,64 @@
+# garson-deployment.yaml - Garson servisinin Kubernetes Deployment tanımı
+#
+# NEDEN Deployment?
+#   Docker-compose'da "garson" servisini tanımlıyordun.
+#   Kubernetes'te bunun karşılığı "Deployment" objesidir.
+#   Deployment, pod'ların (container'ların) nasıl çalışacağını tanımlar.
+#   Eğer pod çökerse, Deployment otomatik olarak yenisini ayağa kaldırır.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: garson
+  namespace: restoran
+  labels:
+    app: garson
+    role: dispatcher
+spec:
+  replicas: 1                    # Kaç tane garson pod'u çalışsın
+  selector:
+    matchLabels:
+      app: garson                # Bu deployment hangi pod'ları yönetsin
+  template:
+    metadata:
+      labels:
+        app: garson
+        role: dispatcher
+    spec:
+      containers:
+        - name: garson
+          image: restoran/garson:latest
+          imagePullPolicy: Never   # ÖNEMLİ: Minikube'ün local image'ı kullanması için
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+          env:
+            - name: FLASK_ENV
+              value: "development"
+            - name: LOG_LEVEL
+              value: "INFO"
+          # Sağlık kontrolü - Garson çalışıyor mu?
+          # NEDEN: Kubernetes, pod sağlıklı değilse trafik göndermez
+          readinessProbe:
+            httpGet:
+              path: /api/v1/sistem/health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/v1/sistem/health
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"

@@ -1,0 +1,46 @@
+# asci2-deployment.yaml - Ayşe Hanım (Burger, Salata uzmanı)
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asci2-ayse
+  namespace: restoran
+  labels:
+    app: asci
+    asci-isim: ayse
+    role: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asci
+      asci-isim: ayse
+  template:
+    metadata:
+      labels:
+        app: asci
+        asci-isim: ayse
+        role: worker
+    spec:
+      containers:
+        - name: asci
+          image: restoran/asci:latest
+          imagePullPolicy: Never
+          env:
+            - name: GARSON_URL
+              value: "http://garson:5000"
+            - name: ASCI_ISIM
+              value: "Ayşe Hanım"
+            - name: UZMANLIK
+              value: "🍔 Cheeseburger,🥗 Sezar Salata,🌮 Taco"
+            - name: POLLING_INTERVAL
+              value: "5"
+            - name: HAZIRLAMA_HIZI
+              value: "1.0"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "150m"

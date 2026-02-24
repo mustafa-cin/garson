@@ -1,0 +1,45 @@
+# musteri-job.yaml - Müşteri servisi (sipariş gönderen)
+#
+# NEDEN Job ve Deployment değil?
+#   Docker-compose'da müşteri restart: "no" ile tanımlıydı.
+#   Yani bir kez çalışıp bitecek bir iş. Kubernetes'te bunun karşılığı "Job"dır.
+#   Job = Bir kez çalış, bitir, dur.
+#   Deployment = Sürekli çalış, çökerse yeniden başlat.
+#
+#   Eğer müşteriyi sürekli çalıştırmak istersen, bunu Deployment'a çevirebilirsin.
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: musteri-ahmet
+  namespace: restoran
+  labels:
+    app: musteri
+    role: producer
+spec:
+  backoffLimit: 3              # Hata olursa en fazla 3 kez dene
+  template:
+    metadata:
+      labels:
+        app: musteri
+        role: producer
+    spec:
+      containers:
+        - name: musteri
+          image: restoran/musteri:latest
+          imagePullPolicy: Never
+          env:
+            - name: GARSON_URL
+              value: "http://garson:5000"
+            - name: MUSTERI_ADI
+              value: "Ahmet"
+            - name: SENARYO
+              value: "1"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "150m"
+      restartPolicy: Never      # Job bitince tekrar başlatma

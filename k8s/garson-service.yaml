@@ -1,0 +1,27 @@
+# garson-service.yaml - Garson servisinin ağ erişim tanımı
+#
+# NEDEN Service?
+#   Docker-compose'da servisler birbirini isimle buluyordu (http://garson:5000).
+#   Kubernetes'te de aynı şeyi "Service" objesi yapar.
+#   Service = Sabit bir adres (DNS adı) + Yük dengeleme
+#
+#   Aşçılar "http://garson:5000" diyerek garsona ulaşacak.
+#   NodePort ile dışarıdan da erişebileceğiz (test için).
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: garson              # Bu isim DNS adı olacak: "garson.restoran.svc.cluster.local"
+  namespace: restoran       # Kısa hali: aynı namespace'deki pod'lar sadece "garson" diyebilir
+  labels:
+    app: garson
+spec:
+  type: NodePort            # NodePort = Dışarıdan erişilebilir
+  selector:
+    app: garson              # Hangi pod'lara trafik yönlendirilsin
+  ports:
+    - port: 5000             # Service portu (cluster içi erişim)
+      targetPort: 5000       # Container'ın dinlediği port
+      nodePort: 30500        # Dışarıdan erişim portu (30000-32767 aralığında)
+      protocol: TCP
+      name: http
